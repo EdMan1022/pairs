@@ -72,11 +72,15 @@ class DataSet:
         :return: Transposed DataFrame of all CSV data files.
         """
         # Read data files into DataFrames
-        nasdaq_df = self.df_read_data_sets('{}{}/'.format(nasdaq_dir, self.year))
-        nyse_df = self.df_read_data_sets('{}{}/'.format(nyse_dir, self.year))
+        nasdaq_df, nasdaq_vol = self.df_read_data_sets('{}{}/'.format(nasdaq_dir, self.year))
+        nyse_df, nyse_vol = self.df_read_data_sets('{}{}/'.format(nyse_dir, self.year))
 
         # Concat DataFrames into main result DataFrames
         main_df = pd.concat([nasdaq_df, nyse_df], axis=0)
+        main_df.index = pd.to_datetime(main_df.index)
+
+        self.volume = pd.concat([nasdaq_vol, nyse_vol], axis=0)
+        self.volume.index = pd.to_datetime(self.volume.index)
 
         # Return transposed DataFrame with dates as index and ticker symbols as columns
         return main_df.T
@@ -92,6 +96,9 @@ class DataSet:
         tmp_df = pd.DataFrame()
         tmp_df.index.name = 'ticker'
 
+        vol_df = pd.DataFrame()
+        vol_df.index.name = 'volume'
+
         # Columns of the CSV data files
         data_cols = ["ticker", "date", "open", "high", "low", "close", "volume"]
 
@@ -100,8 +107,9 @@ class DataSet:
             # Read CSV
             df = pd.read_csv(dir_path + file, header=None, names=data_cols, index_col=0)
             tmp_df.loc[:, df.date.iloc[0]] = df.close
+            vol_df.loc[:, df.date.iloc[0]] = df.volume
 
-        return tmp_df
+        return tmp_df, vol_df
 
 
 def get_relative_date(months: int) -> date:
