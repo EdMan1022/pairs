@@ -81,6 +81,7 @@ class DataSet:
 
         self.volume = pd.concat([nasdaq_vol, nyse_vol], axis=0)
         self.volume.index = pd.to_datetime(self.volume.index)
+        self.volume = self.volume.T
 
         # Return transposed DataFrame with dates as index and ticker symbols as columns
         return main_df.T
